@@ -552,6 +552,21 @@ class Connection
 
     private function clearWhenDisconnected(): void
     {
+        if ($this->amqpChannel) {
+            $connection = $this->channel()->getConnection();
+            if ($connection->isPersistent()) {
+                $connection->preconnect();
+            } else {
+                $connection->reconnect();
+            }
+            $this->amqpChannel = null;
+            $this->amqpQueues = [];
+            $this->amqpExchange = null;
+            $this->amqpDelayExchange = null;
+
+            return;
+        }
+
         if (!$this->channel()->isConnected()) {
             $this->amqpChannel = null;
             $this->amqpQueues = [];
